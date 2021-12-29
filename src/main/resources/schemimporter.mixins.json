@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.7",
+  "package": "com.won983212.schemimporter.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "schemimporter.refmap.json",
+  "mixins": [
+    "MixinBlockStateFlattening"
+  ],
+  "client": [
+    "MixinSkinManager"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
