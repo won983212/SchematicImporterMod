@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 
 public enum Packets {
     // from Server packets
-    RELOAD_SKIN(SReloadSkin.class, SReloadSkin::new, NetworkDirection.PLAY_TO_CLIENT),
     OPEN_SCHEMATIC_MENU(SOpenSchematicMenu.class, SOpenSchematicMenu::new, NetworkDirection.PLAY_TO_CLIENT),
     SCHEMATIC_LOAD_STATUS(SSchematicReceivedProgress.class, SSchematicReceivedProgress::new, NetworkDirection.PLAY_TO_CLIENT),
     SCHEMATIC_RESPONSE_DELETE(SSchematicDeleteResponse.class, SSchematicDeleteResponse::new, NetworkDirection.PLAY_TO_CLIENT),

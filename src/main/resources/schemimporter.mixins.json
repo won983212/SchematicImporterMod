@@ -7,9 +7,6 @@
   "mixins": [
     "MixinBlockStateFlattening"
   ],
-  "client": [
-    "MixinSkinManager"
-  ],
   "injectors": {
     "defaultRequire": 1
   }

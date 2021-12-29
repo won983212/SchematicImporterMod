@@ -10,7 +10,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod(SchematicImporterMod.MODID)
 public class SchematicImporterMod {
     public static final String MODID = "schemimporter";
-    public static final String HOST = "http://web.won983212.synology.me/skin/";
     private final CommonMod proxy;
 
     public SchematicImporterMod() {
