@@ -1,6 +1,6 @@
 package com.won983212.schemimporter.network;
 
-import com.won983212.schemimporter.schematic.network.*;
+import com.won983212.schemimporter.network.packets.*;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;

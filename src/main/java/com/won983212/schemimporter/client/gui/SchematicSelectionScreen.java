@@ -8,7 +8,7 @@ import com.won983212.schemimporter.client.gui.component.HoveringCover;
 import com.won983212.schemimporter.client.gui.component.ScrollSelector;
 import com.won983212.schemimporter.network.NetworkDispatcher;
 import com.won983212.schemimporter.schematic.SchematicFile;
-import com.won983212.schemimporter.schematic.network.CSchematicFileDelete;
+import com.won983212.schemimporter.network.packets.CSchematicFileDelete;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.util.*;

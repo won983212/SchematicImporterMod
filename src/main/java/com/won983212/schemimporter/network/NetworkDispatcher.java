@@ -8,7 +8,7 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public class NetworkDispatcher {
     private static final String MESSAGE_PROTOCOL_VERSION = "1.0";
-    private static final ResourceLocation CHANNEL_NAME = new ResourceLocation(SchematicImporterMod.MODID, "networkchannel");
+    private static final ResourceLocation CHANNEL_NAME = SchematicImporterMod.getResource("networkchannel");
     private static SimpleChannel channel;
 
     public static void initDispatcher() {

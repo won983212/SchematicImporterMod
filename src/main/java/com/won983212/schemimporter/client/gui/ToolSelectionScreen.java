@@ -4,8 +4,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.won983212.schemimporter.ModKeys;
 import com.won983212.schemimporter.ModTextures;
-import com.won983212.schemimporter.schematic.client.tools.Tools;
-import com.won983212.schemimporter.utility.Lang;
+import com.won983212.schemimporter.SchematicImporterMod;
+import com.won983212.schemimporter.client.tools.Tools;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 
 public class ToolSelectionScreen extends Screen {
 
-    public final String scrollToCycle = Lang.translate("gui.toolmenu.cycle").getString();
+    public final String scrollToCycle = SchematicImporterMod.translate("gui.toolmenu.cycle").getString();
     public final String holdToFocus = "gui.toolmenu.focusKey";
 
     protected final List<Tools> tools;
@@ -103,7 +103,7 @@ public class ToolSelectionScreen extends Screen {
             String keyName = ModKeys.KEY_TOOL_MENU.getKey().getDisplayName().getString();
             int width = minecraft.getWindow().getGuiScaledWidth();
             if (!focused) {
-                drawCenteredString(matrixStack, minecraft.font, Lang.translate(holdToFocus, keyName), width / 2,
+                drawCenteredString(matrixStack, minecraft.font, SchematicImporterMod.translate(holdToFocus, keyName), width / 2,
                         y - 10, 0xCCDDFF);
             } else {
                 drawCenteredString(matrixStack, minecraft.font, scrollToCycle, width / 2, y - 10, 0xCCDDFF);

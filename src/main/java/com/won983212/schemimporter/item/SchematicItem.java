@@ -1,7 +1,7 @@
 package com.won983212.schemimporter.item;
 
+import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.schematic.parser.SchematicFileParser;
-import com.won983212.schemimporter.utility.Lang;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -69,7 +69,7 @@ public class SchematicItem extends Item {
                 }
             }
         } else {
-            tooltip.add(Lang.translate("schematic.invalid").withStyle(TextFormatting.RED));
+            tooltip.add(SchematicImporterMod.translate("schematic.invalid").withStyle(TextFormatting.RED));
         }
         super.appendHoverText(stack, worldIn, tooltip, flagIn);
     }

@@ -7,16 +7,12 @@ import com.won983212.schemimporter.ModKeys;
 import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.client.gui.SchematicStatusScreen;
 import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
-import com.won983212.schemimporter.schematic.client.SchematicHandler;
-import com.won983212.schemimporter.schematic.client.render.ChunkVertexBuffer;
-import com.won983212.schemimporter.schematic.network.ClientSchematicLoader;
+import com.won983212.schemimporter.client.render.ChunkVertexBuffer;
+import com.won983212.schemimporter.network.loader.ClientSchematicLoader;
 import com.won983212.schemimporter.schematic.parser.SchematicFileParser;
-import com.won983212.schemimporter.utility.animate.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.InputEvent;
@@ -61,17 +57,8 @@ public class ClientMod extends CommonMod {
     }
 
     @SubscribeEvent
-    public static void onLoadWorld(WorldEvent.Load event) {
-        IWorld world = event.getWorld();
-        if (world.isClientSide() && world instanceof ClientWorld) {
-            AnimationTickHolder.reset();
-        }
-    }
-
-    @SubscribeEvent
     public static void onUnloadWorld(WorldEvent.Unload event) {
         if (event.getWorld().isClientSide()) {
-            AnimationTickHolder.reset();
             SchematicFileParser.clearCache();
             ClientMod.SCHEMATIC_HANDLER.unload();
             CommonMod.CLIENT_SCHEDULER.cancelAllTask();
@@ -88,7 +75,6 @@ public class ClientMod extends CommonMod {
             return;
         }
 
-        AnimationTickHolder.tick();
         ClientMod.SCHEMATIC_HANDLER.tick();
         ClientMod.SCHEMATIC_SENDER.tick();
     }

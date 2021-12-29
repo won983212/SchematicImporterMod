@@ -15,13 +15,12 @@ public enum ModTextures {
     HIGHLIGHT_CHECKERED("highlighted_checkerboard.png", 0, 0, 16, 16),
     SCHEMATIC_SELECT_BACKGROUND("schematics.png", 0, 0, 206, 83);
 
-    public static final String ASSET_PATH = "textures/gui/";
     private final ResourceLocation location;
     public final int width, height;
     public final int startX, startY;
 
     ModTextures(String filename, int x, int y, int width, int height) {
-        location = new ResourceLocation(SchematicImporterMod.MODID, ASSET_PATH + filename);
+        this.location = SchematicImporterMod.getResource("textures/gui/" + filename);
         this.startX = x;
         this.startY = y;
         this.width = width;

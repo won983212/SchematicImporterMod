@@ -1,7 +1,7 @@
 package com.won983212.schemimporter;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.won983212.schemimporter.schematic.network.ServerSchematicLoader;
+import com.won983212.schemimporter.network.loader.ServerSchematicLoader;
 import com.won983212.schemimporter.server.Commands;
 import com.won983212.schemimporter.task.TaskScheduler;
 import net.minecraft.command.CommandSource;
@@ -44,4 +44,5 @@ public class CommonMod {
     public static void serverStopped(FMLServerStoppingEvent event) {
         CommonMod.SCHEMATIC_RECEIVER.shutdown();
     }
+
 }

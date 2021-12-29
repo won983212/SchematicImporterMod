@@ -8,7 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ModIcons {
-    public static final ResourceLocation ICON_ATLAS = new ResourceLocation(SchematicImporterMod.MODID, "textures/gui/icons.png");
+    public static final ResourceLocation ICON_ATLAS = SchematicImporterMod.getResource("textures/gui/icons.png");
     private static int x = 0, y = -1;
     private final int iconX;
     private final int iconY;

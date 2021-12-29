@@ -5,11 +5,10 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.network.NetworkDispatcher;
 import com.won983212.schemimporter.schematic.SchematicFile;
-import com.won983212.schemimporter.schematic.network.SOpenSchematicMenu;
+import com.won983212.schemimporter.network.packets.SOpenSchematicMenu;
 import net.minecraft.command.CommandSource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 public class SchematicCommand {
@@ -24,7 +23,7 @@ public class SchematicCommand {
     private static int openSchematicDialog(CommandSource source) {
         Entity e = source.getEntity();
         if (!(e instanceof ServerPlayerEntity)) {
-            source.sendFailure(new TranslationTextComponent(SchematicImporterMod.MODID + ".command.error.cantexecuteentity"));
+            source.sendFailure(SchematicImporterMod.translate("command.error.cantexecuteentity"));
             return 0;
         }
 
