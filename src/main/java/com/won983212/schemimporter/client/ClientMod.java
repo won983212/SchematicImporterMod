@@ -126,9 +126,6 @@ public class ClientMod extends CommonMod {
 
         if (Minecraft.getInstance().screen == null) {
             ClientMod.SCHEMATIC_HANDLER.onMouseInput(button, pressed);
-        } else {
-            Point p = getMousePosition();
-            ClientMod.SCHEMATIC_UPLOAD_SCREEN.onMouseInput(button, pressed, p.x, p.y);
         }
     }
 

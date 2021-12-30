@@ -77,7 +77,6 @@ public class ToolSelectionScreen extends Screen {
 
         float toolTipAlpha = yOffset / 10;
         List<ITextComponent> toolTip = tools.get(selection).getDescription();
-        int stringAlphaComponent = ((int) (toolTipAlpha * 0xFF)) << 24;
 
         if (toolTipAlpha > 0.25f) {
             RenderSystem.color4f(.7f, .7f, .8f, toolTipAlpha);
@@ -85,16 +84,16 @@ public class ToolSelectionScreen extends Screen {
             RenderSystem.color4f(1, 1, 1, 1);
 
             if (toolTip.size() > 0) {
-                font.draw(matrixStack, toolTip.get(0), x - 10, y + 38, 0xEEEEEE + stringAlphaComponent);
+                font.draw(matrixStack, toolTip.get(0), x - 10, y + 38, 0xFFEEEEEE);
             }
             if (toolTip.size() > 1) {
-                font.draw(matrixStack, toolTip.get(1), x - 10, y + 50, 0xCCDDFF + stringAlphaComponent);
+                font.draw(matrixStack, toolTip.get(1), x - 10, y + 50, 0xFFCCDDFF);
             }
             if (toolTip.size() > 2) {
-                font.draw(matrixStack, toolTip.get(2), x - 10, y + 60, 0xCCDDFF + stringAlphaComponent);
+                font.draw(matrixStack, toolTip.get(2), x - 10, y + 60, 0xFFCCDDFF);
             }
             if (toolTip.size() > 3) {
-                font.draw(matrixStack, toolTip.get(3), x - 10, y + 72, 0xCCCCDD + stringAlphaComponent);
+                font.draw(matrixStack, toolTip.get(3), x - 10, y + 72, 0xFFCCCCDD);
             }
         }
 
