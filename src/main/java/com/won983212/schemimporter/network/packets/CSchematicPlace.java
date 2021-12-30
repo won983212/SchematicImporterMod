@@ -14,6 +14,7 @@ import net.minecraftforge.fml.network.NetworkEvent.Context;
 
 import java.util.function.Supplier;
 
+// TODO Schematic 반대로 다운받는 기능도 추가
 public class CSchematicPlace implements IMessage {
     public final ItemStack stack;
 
@@ -41,8 +42,10 @@ public class CSchematicPlace implements IMessage {
             }
 
             boolean includeAir = false;
-            if (stack.hasTag() && stack.getTag().getBoolean("IncludeAir")) {
-                includeAir = true;
+            String name = "unknown";
+            if (stack.hasTag()) {
+                includeAir = stack.getTag().getBoolean("IncludeAir");
+                name = stack.getTag().getString("File");
             }
 
             final int[] percentIndex = {0};
@@ -60,6 +63,7 @@ public class CSchematicPlace implements IMessage {
                 }).includeAir(includeAir).maxBatchPlacing(10000);
 
                 CommonMod.SERVER_SCHEDULER.addAsyncTask(printer)
+                        .name("print/" + name + "/" + player.getGameProfile().getName())
                         .exceptionally((e) -> handleException(player, e));
                 sendSchematicMessage(player, "Schematic 설치를 시작합니다.");
             } catch (IllegalArgumentException e) {
@@ -75,6 +79,7 @@ public class CSchematicPlace implements IMessage {
     }
 
     private static void sendSchematicMessage(ServerPlayerEntity player, String message) {
+        Logger.info(message);
         player.sendMessage(new StringTextComponent(TextFormatting.GOLD + "[Schematic] " + TextFormatting.RESET + message), player.getUUID());
     }
 }

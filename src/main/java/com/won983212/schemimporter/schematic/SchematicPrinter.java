@@ -102,8 +102,13 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
 
     private boolean loadSchematic() {
         if (schematicLoadingTask == null) {
+            String fileName = "unknown";
+            if (blueprint.hasTag()) {
+                fileName = blueprint.getTag().getString("File");
+            }
             schematicLoadingTask = SchematicFileParser.parseSchematicFromItemAsync(blueprint, (s, p) -> IProgressEvent.safeFire(event, s, p * 0.2));
             scheduler.addAsyncTask(schematicLoadingTask)
+                    .name("load_schem/" + fileName)
                     .thenAccept((c) -> {
                         BlockPos size = c.getSize();
                         this.total = (long) size.getX() * size.getY() * size.getZ();

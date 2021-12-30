@@ -2,7 +2,7 @@ package com.won983212.schemimporter;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.won983212.schemimporter.network.loader.ServerSchematicLoader;
-import com.won983212.schemimporter.server.Commands;
+import com.won983212.schemimporter.server.ModCommands;
 import com.won983212.schemimporter.task.TaskScheduler;
 import net.minecraft.command.CommandSource;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -35,7 +35,7 @@ public class CommonMod {
     @SubscribeEvent
     public static void onRegisterCommand(RegisterCommandsEvent e) {
         CommandDispatcher<CommandSource> dispater = e.getDispatcher();
-        for (Commands command : Commands.values()) {
+        for (ModCommands command : ModCommands.values()) {
             command.reigster(dispater);
         }
     }

@@ -8,6 +8,7 @@ import com.won983212.schemimporter.schematic.SchematicFile;
 import com.won983212.schemimporter.schematic.container.SchematicContainer;
 import com.won983212.schemimporter.task.FinishedTask;
 import com.won983212.schemimporter.task.IAsyncTask;
+import com.won983212.schemimporter.task.QueuedAsyncTask;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
@@ -18,9 +19,11 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+// TODO 같은 File을 두 명이 동시에 print하면, 한명이 기다리도록 하기.
 public class SchematicFileParser {
 
     private static final Cache<String, SchematicContainer> schematicCache;
+    private static final HashMap<String, QueuedAsyncTask<SchematicContainer>> loadingMap = new HashMap<>();
     private static final HashMap<String, Class<? extends AbstractSchematicReader>> extensionToReaderMap = new HashMap<>();
 
     static {

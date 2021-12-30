@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class QueuedAsyncTask<T> {
+    private String name;
     private int groupId;
     private IAsyncTask<T> task;
     private Consumer<Exception> exceptionHandler;
@@ -11,10 +12,12 @@ public class QueuedAsyncTask<T> {
     private boolean completed;
     private int batchCount;
     private IElasticAsyncTask<T> elasticTask;
+    private long queuedTime = -1;
 
 
     protected QueuedAsyncTask(IAsyncTask<T> task) {
         this.setTask(task);
+        this.name = "Unnamed Task";
         this.completed = false;
     }
 
@@ -36,6 +39,11 @@ public class QueuedAsyncTask<T> {
 
     public QueuedAsyncTask<T> groupId(int id) {
         this.groupId = id;
+        return this;
+    }
+
+    public QueuedAsyncTask<T> name(String name) {
+        this.name = name;
         return this;
     }
 
@@ -110,6 +118,14 @@ public class QueuedAsyncTask<T> {
         }
     }
 
+    public boolean isActive() {
+        return queuedTime != -1;
+    }
+
+    public void enqueued() {
+        queuedTime = System.currentTimeMillis();
+    }
+
     public void cancel() {
         task = null;
     }
@@ -120,6 +136,19 @@ public class QueuedAsyncTask<T> {
 
     public int getGroupId() {
         return groupId;
+    }
+
+    public long getRunningTime() {
+        return System.currentTimeMillis() - queuedTime;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "QueuedAsyncTask[name=" + name + "]";
     }
 
     private static class CompleteResultTask<T, R> {

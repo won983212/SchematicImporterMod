@@ -2,10 +2,8 @@ package com.won983212.schemimporter.task;
 
 import com.won983212.schemimporter.Logger;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TaskScheduler {
     private final Stack<Integer> groupIdContext = new Stack<>();
@@ -86,6 +84,7 @@ public class TaskScheduler {
         for (int i = 0; i < tasks.length && !taskWaitingQueue.isEmpty(); i++) {
             if (tasks[i] == null) {
                 tasks[i] = taskWaitingQueue.poll();
+                tasks[i].enqueued();
                 count++;
             }
         }
@@ -108,5 +107,11 @@ public class TaskScheduler {
             Logger.warn("Can't find active async task! It's a bug!");
         }
         return cur;
+    }
+
+    public List<QueuedAsyncTask<?>> getActiveTasks() {
+        return Arrays.stream(tasks)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

@@ -7,6 +7,8 @@
   "key.schemimporter.category" : "Schematic Importer Mod",
 
   "schemimporter.message.uploadalready": "같은 이름의 파일이 이미 업로드 작업중입니다.",
+  "schemimporter.message.clearedalltasks": "서버상 모든 Schematic 작업이 중단되었습니다.",
+  "schemimporter.message.notasks": "큐에 아무런 작업도 없습니다.",
   "schemimporter.command.error.cantexecuteentity": "이 명령은 반드시 플레이어에 의해서만 실행되어야 합니다.",
 
   "item.schemimporter.schematic": "청사진",
