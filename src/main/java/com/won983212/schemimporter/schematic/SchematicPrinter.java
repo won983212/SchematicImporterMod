@@ -189,7 +189,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
             state = fixBlockState(pos, state);
             BlockState updatedState = Block.updateFromNeighbourShapes(state, world, pos);
             if (state != updatedState) {
-                world.setBlock(pos, updatedState, Constants.BlockFlags.BLOCK_UPDATE & -2 | 16);
+                world.setBlock(pos, updatedState, Constants.BlockFlags.BLOCK_UPDATE | Constants.BlockFlags.UPDATE_NEIGHBORS);
             }
             world.blockUpdated(pos, updatedState.getBlock());
 

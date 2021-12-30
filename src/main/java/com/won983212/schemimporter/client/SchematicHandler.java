@@ -6,10 +6,10 @@ import com.won983212.schemimporter.ModKeys;
 import com.won983212.schemimporter.client.gui.ToolSelectionScreen;
 import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
 import com.won983212.schemimporter.client.render.outliner.AABBOutline;
+import com.won983212.schemimporter.client.tools.Tools;
 import com.won983212.schemimporter.item.ModItems;
 import com.won983212.schemimporter.item.SchematicItem;
 import com.won983212.schemimporter.network.NetworkDispatcher;
-import com.won983212.schemimporter.client.tools.Tools;
 import com.won983212.schemimporter.network.packets.CSchematicPlace;
 import com.won983212.schemimporter.network.packets.CSchematicSync;
 import net.minecraft.client.Minecraft;
@@ -248,6 +248,7 @@ public class SchematicHandler {
 
         bounds = new AxisAlignedBB(BlockPos.ZERO, size);
         outline = new AABBOutline(bounds);
+        outline.setAnchor(anchor);
         outline.getParams().colored(0x6886c5).lineWidth(1 / 16f);
         transformation.init(anchor, settings, bounds);
     }

@@ -10,36 +10,35 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 
 public class AABBOutline extends Outline {
 
-    protected AxisAlignedBB bb;
+    private AxisAlignedBB bb;
+    private BlockPos anchor;
 
     public AABBOutline(AxisAlignedBB bb) {
         this.setBounds(bb);
+        this.anchor = BlockPos.ZERO;
     }
 
     @Override
     public void render(MatrixStack ms, SuperRenderTypeBuffer buffer, float pt) {
-        renderBB(ms, buffer, bb);
-    }
+        Vector3d projectedView = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        boolean noCull = bb.move(anchor).contains(projectedView);
 
-    public void renderBB(MatrixStack ms, SuperRenderTypeBuffer buffer, AxisAlignedBB bb) {
-        Vector3d projectedView = Minecraft.getInstance().gameRenderer.getMainCamera()
-                .getPosition();
-        boolean noCull = bb.contains(projectedView);
-        bb = bb.inflate(noCull ? -1 / 128d : 1 / 128d);
+        AxisAlignedBB bounds = bb.inflate(noCull ? -1 / 128d : 1 / 128d);
         noCull |= params.disableCull;
 
-        Vector3d xyz = new Vector3d(bb.minX, bb.minY, bb.minZ);
-        Vector3d Xyz = new Vector3d(bb.maxX, bb.minY, bb.minZ);
-        Vector3d xYz = new Vector3d(bb.minX, bb.maxY, bb.minZ);
-        Vector3d XYz = new Vector3d(bb.maxX, bb.maxY, bb.minZ);
-        Vector3d xyZ = new Vector3d(bb.minX, bb.minY, bb.maxZ);
-        Vector3d XyZ = new Vector3d(bb.maxX, bb.minY, bb.maxZ);
-        Vector3d xYZ = new Vector3d(bb.minX, bb.maxY, bb.maxZ);
-        Vector3d XYZ = new Vector3d(bb.maxX, bb.maxY, bb.maxZ);
+        Vector3d xyz = new Vector3d(bounds.minX, bounds.minY, bounds.minZ);
+        Vector3d Xyz = new Vector3d(bounds.maxX, bounds.minY, bounds.minZ);
+        Vector3d xYz = new Vector3d(bounds.minX, bounds.maxY, bounds.minZ);
+        Vector3d XYz = new Vector3d(bounds.maxX, bounds.maxY, bounds.minZ);
+        Vector3d xyZ = new Vector3d(bounds.minX, bounds.minY, bounds.maxZ);
+        Vector3d XyZ = new Vector3d(bounds.maxX, bounds.minY, bounds.maxZ);
+        Vector3d xYZ = new Vector3d(bounds.minX, bounds.maxY, bounds.maxZ);
+        Vector3d XYZ = new Vector3d(bounds.maxX, bounds.maxY, bounds.maxZ);
 
         Vector3d start = xyz;
         renderAACuboidLine(ms, buffer, start, Xyz);
@@ -63,11 +62,10 @@ public class AABBOutline extends Outline {
 
         renderFace(ms, buffer, Direction.NORTH, xYz, XYz, Xyz, xyz, noCull);
         renderFace(ms, buffer, Direction.SOUTH, XYZ, xYZ, xyZ, XyZ, noCull);
-        renderFace(ms, buffer, Direction.EAST, xYZ, xYz, xyz, xyZ, noCull);
-        renderFace(ms, buffer, Direction.WEST, XYz, XYZ, XyZ, Xyz, noCull);
+        renderFace(ms, buffer, Direction.WEST, xYZ, xYz, xyz, xyZ, noCull);
+        renderFace(ms, buffer, Direction.EAST, XYz, XYZ, XyZ, Xyz, noCull);
         renderFace(ms, buffer, Direction.UP, xYZ, XYZ, XYz, xYz, noCull);
         renderFace(ms, buffer, Direction.DOWN, xyz, Xyz, XyZ, xyZ, noCull);
-
     }
 
     protected void renderFace(MatrixStack ms, SuperRenderTypeBuffer buffer, Direction direction, Vector3d p1, Vector3d p2,
@@ -94,6 +92,10 @@ public class AABBOutline extends Outline {
 
     public void setBounds(AxisAlignedBB bb) {
         this.bb = bb;
+    }
+
+    public void setAnchor(BlockPos anchor) {
+        this.anchor = anchor;
     }
 
 }
