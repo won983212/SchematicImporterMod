@@ -2,19 +2,21 @@ package com.won983212.schemimporter.network.packets;
 
 import com.won983212.schemimporter.CommonMod;
 import com.won983212.schemimporter.Logger;
+import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.network.IMessage;
 import com.won983212.schemimporter.schematic.SchematicPrinter;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkEvent.Context;
 
 import java.util.function.Supplier;
 
-// TODO Schematic 반대로 다운받는 기능도 추가
 public class CSchematicPlace implements IMessage {
     public final ItemStack stack;
 
@@ -38,7 +40,8 @@ public class CSchematicPlace implements IMessage {
             }
 
             if (!player.canUseGameMasterBlocks()) {
-                player.sendMessage(new StringTextComponent("§a관리자만 사용할 수 있는 기능입니다."), player.getUUID());
+                player.sendMessage(new TranslationTextComponent("message.adminonly")
+                        .withStyle(TextFormatting.RED), player.getUUID());
             }
 
             boolean includeAir = false;
@@ -55,9 +58,10 @@ public class CSchematicPlace implements IMessage {
                     int percent = (int) Math.floor(p * 100);
                     if (percent >= percentIndex[0] * 10) {
                         percentIndex[0]++;
-                        sendSchematicMessage(player, s + ": " + percent + "%");
+                        Logger.debug(s + ": " + percent + "%");
+                        sendSchematicMessage(player, percent + "%");
                         if (percent == 100) {
-                            sendSchematicMessage(player, "설치 완료했습니다.");
+                            sendSchematicMessageTranslate(player, "message.placecomplete");
                         }
                     }
                 }).includeAir(includeAir).maxBatchPlacing(10000);
@@ -65,7 +69,7 @@ public class CSchematicPlace implements IMessage {
                 CommonMod.SERVER_SCHEDULER.addAsyncTask(printer)
                         .name("print/" + name + "/" + player.getGameProfile().getName())
                         .exceptionally((e) -> handleException(player, e));
-                sendSchematicMessage(player, "Schematic 설치를 시작합니다.");
+                sendSchematicMessageTranslate(player, "message.placestart");
             } catch (IllegalArgumentException e) {
                 handleException(player, e);
             }
@@ -75,7 +79,14 @@ public class CSchematicPlace implements IMessage {
 
     private static void handleException(ServerPlayerEntity player, Exception e) {
         Logger.error(e);
-        sendSchematicMessage(player, "설치 중 오류가 발생했습니다. 자세한 사항은 운영자에게 문의하세요.");
+        sendSchematicMessageTranslate(player, "message.exception");
+    }
+
+    private static void sendSchematicMessageTranslate(ServerPlayerEntity player, String messageId) {
+        ITextComponent text = SchematicImporterMod.translate(messageId);
+        text = new StringTextComponent(TextFormatting.GOLD + "[Schematic] " + TextFormatting.RESET).append(text);
+        Logger.info(text.getString());
+        player.sendMessage(text, player.getUUID());
     }
 
     private static void sendSchematicMessage(ServerPlayerEntity player, String message) {

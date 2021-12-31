@@ -46,7 +46,7 @@ public class SchematicSelectionScreen extends PanelScreen {
 
         SchematicFileValue file = schematicFiles.get(index);
         if (btn == uploadBtn) {
-            ClientMod.SCHEMATIC_SENDER.startNewUpload(file.schematicFile);
+            ClientMod.CLIENT_SCHEMATIC_LOADER.startNewUpload(file.schematicFile);
             onClose();
         } else if (btn == deleteBtn) {
             if (file.needsUpload) {

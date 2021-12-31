@@ -35,7 +35,7 @@ public class CSchematicFileDelete implements IMessage {
             if (player == null) {
                 return;
             }
-            if (CommonMod.SCHEMATIC_RECEIVER.deleteSchematic(player, schematicFileName)) {
+            if (CommonMod.SERVER_SCHEMATIC_LOADER.deleteSchematic(player, schematicFileName)) {
                 SSchematicDeleteResponse packet = new SSchematicDeleteResponse(schematicFileName);
                 NetworkDispatcher.send(PacketDistributor.PLAYER.with(() -> player), packet);
             }

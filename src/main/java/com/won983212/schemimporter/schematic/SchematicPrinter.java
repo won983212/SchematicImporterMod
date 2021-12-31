@@ -31,6 +31,7 @@ import net.minecraft.world.gen.feature.template.PlacementSettings;
 import net.minecraft.world.gen.feature.template.Template;
 import net.minecraftforge.common.util.Constants;
 
+// TODO Block 설치할 떄 too many packets!!
 public class SchematicPrinter implements IElasticAsyncTask<Void> {
 
     private enum PrintStage {

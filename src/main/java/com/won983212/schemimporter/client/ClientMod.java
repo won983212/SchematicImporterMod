@@ -6,10 +6,11 @@ import com.won983212.schemimporter.CommonMod;
 import com.won983212.schemimporter.ModKeys;
 import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.client.gui.SchematicStatusScreen;
-import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
 import com.won983212.schemimporter.client.render.ChunkVertexBuffer;
+import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
 import com.won983212.schemimporter.network.loader.ClientSchematicLoader;
 import com.won983212.schemimporter.schematic.parser.SchematicFileParser;
+import com.won983212.schemimporter.task.TaskScheduler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.util.math.vector.Vector3d;
@@ -28,12 +29,13 @@ import java.awt.*;
 
 @Mod.EventBusSubscriber(modid = SchematicImporterMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientMod extends CommonMod {
+    public static final TaskScheduler CLIENT_SCHEDULER = new TaskScheduler();
     public static final SchematicHandler SCHEMATIC_HANDLER = new SchematicHandler();
-    public static final ClientSchematicLoader SCHEMATIC_SENDER = new ClientSchematicLoader();
+    public static final ClientSchematicLoader CLIENT_SCHEMATIC_LOADER = new ClientSchematicLoader();
     public static final SchematicStatusScreen SCHEMATIC_UPLOAD_SCREEN = new SchematicStatusScreen();
 
     static {
-        SCHEMATIC_UPLOAD_SCREEN.registerProgressProducer(SCHEMATIC_SENDER);
+        CLIENT_SCHEMATIC_LOADER.registerProgressProducers();
         SCHEMATIC_UPLOAD_SCREEN.registerProgressProducer(SCHEMATIC_HANDLER.getRendererManager());
     }
 
@@ -41,14 +43,6 @@ public class ClientMod extends CommonMod {
     public void onCommonSetup(FMLCommonSetupEvent event) {
         super.onCommonSetup(event);
         ModKeys.registerKeys();
-    }
-
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            return;
-        }
-        CommonMod.CLIENT_SCHEDULER.tick();
     }
 
     @SubscribeEvent
@@ -60,8 +54,10 @@ public class ClientMod extends CommonMod {
     public static void onUnloadWorld(WorldEvent.Unload event) {
         if (event.getWorld().isClientSide()) {
             SchematicFileParser.clearCache();
+            CLIENT_SCHEDULER.cancelAllTask();
+            CLIENT_SCHEMATIC_LOADER.shutdown();
             ClientMod.SCHEMATIC_HANDLER.unload();
-            CommonMod.CLIENT_SCHEDULER.cancelAllTask();
+            CommonMod.SERVER_SCHEMATIC_LOADER.shutdown();
         }
     }
 
@@ -75,8 +71,9 @@ public class ClientMod extends CommonMod {
             return;
         }
 
+        CLIENT_SCHEDULER.tick();
         ClientMod.SCHEMATIC_HANDLER.tick();
-        ClientMod.SCHEMATIC_SENDER.tick();
+        ClientMod.CLIENT_SCHEMATIC_LOADER.tick();
     }
 
     @SubscribeEvent

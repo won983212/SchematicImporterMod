@@ -10,8 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = SchematicImporterMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModItems {
     public static final SchematicItem itemSchematic = (SchematicItem) new SchematicItem(new Item.Properties()
-            .stacksTo(1)
-            .tab(ItemGroup.TAB_TOOLS))
+            .stacksTo(1))
             .setRegistryName("schematic");
 
     @SubscribeEvent

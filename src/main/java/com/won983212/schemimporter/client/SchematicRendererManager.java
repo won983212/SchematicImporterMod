@@ -3,7 +3,6 @@ package com.won983212.schemimporter.client;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.won983212.schemimporter.CommonMod;
 import com.won983212.schemimporter.Logger;
 import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
@@ -87,16 +86,16 @@ public class SchematicRendererManager implements IProgressEntryProducer {
         if (renderers == null) {
             final IAsyncTask<SchematicContainer> task0 =
                     SchematicFileParser.parseSchematicFromItemAsync(activeSchematicItem, (s, p) -> loadingEntry.onProgress(s, 0.4 * p));
-            CommonMod.CLIENT_SCHEDULER.addAsyncTask(task0)
+            ClientMod.CLIENT_SCHEDULER.addAsyncTask(task0)
                     .groupId(schematicFilePath.hashCode())
                     .exceptionally((e) -> {
                         Logger.error(e);
                         loadingEntries.remove(schematicFilePath);
                     })
                     .then((schematic) -> {
-                        CommonMod.CLIENT_SCHEDULER.pushGroupIdContext(schematicFilePath.hashCode());
+                        ClientMod.CLIENT_SCHEDULER.pushGroupIdContext(schematicFilePath.hashCode());
                         IAsyncTask<SchematicRenderer[]> task = startPreparingSchematicAsync(schematic, (s, p) -> loadingEntry.onProgress(s, 0.4 + 0.6 * p));
-                        CommonMod.CLIENT_SCHEDULER.popGroupIdContext();
+                        ClientMod.CLIENT_SCHEDULER.popGroupIdContext();
                         return task;
                     })
                     .thenAccept((newRenderers) -> {
@@ -155,7 +154,7 @@ public class SchematicRendererManager implements IProgressEntryProducer {
         SchematicWorld world = new SchematicWorld(Minecraft.getInstance().level, schematic.getSize());
         SchematicPrinter printer = SchematicPrinter.newPlacingSchematicTask(schematic, world, position, pSettings, (s, p) -> event.onProgress(s, 0.7 * p))
                 .includeAir(false);
-        return CommonMod.CLIENT_SCHEDULER.addAsyncTask(printer)
+        return ClientMod.CLIENT_SCHEDULER.addAsyncTask(printer)
                 .then((c) -> cachingDrawBufferAsync(world, renderers, rendererIndex, (s, p) -> event.onProgress(s, 0.7 + 0.3 * p)));
     }
 
@@ -181,7 +180,7 @@ public class SchematicRendererManager implements IProgressEntryProducer {
 
     public void cancelLoadingTask(ItemStack itemStack) {
         String schematicFilePath = itemStack.getTag().getString("File");
-        CommonMod.CLIENT_SCHEDULER.cancelGroupTask(schematicFilePath.hashCode());
+        ClientMod.CLIENT_SCHEDULER.cancelGroupTask(schematicFilePath.hashCode());
         loadingEntries.remove(schematicFilePath);
     }
 

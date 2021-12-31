@@ -13,7 +13,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-public class CSchematicUpload implements IMessage {
+public class CSSchematicUpload implements IMessage {
 
     public static final int BEGIN = 0;
     public static final int WRITE = 1;
@@ -26,7 +26,7 @@ public class CSchematicUpload implements IMessage {
     private long size;
     private byte[] data;
 
-    private CSchematicUpload(int code, String schematic, @Nullable SchematicFile schematicFile, long size, byte[] data) {
+    private CSSchematicUpload(int code, String schematic, @Nullable SchematicFile schematicFile, long size, byte[] data) {
         this.code = code;
         this.schematic = schematic;
         this.schematicFile = schematicFile;
@@ -34,19 +34,19 @@ public class CSchematicUpload implements IMessage {
         this.data = data;
     }
 
-    public static CSchematicUpload begin(SchematicFile schematic, long size) {
-        return new CSchematicUpload(BEGIN, schematic.getName(), schematic, size, null);
+    public static CSSchematicUpload begin(SchematicFile schematic, long size) {
+        return new CSSchematicUpload(BEGIN, schematic.getName(), schematic, size, null);
     }
 
-    public static CSchematicUpload write(String schematic, byte[] data) {
-        return new CSchematicUpload(WRITE, schematic, null, 0, data);
+    public static CSSchematicUpload write(String schematic, byte[] data) {
+        return new CSSchematicUpload(WRITE, schematic, null, 0, data);
     }
 
-    public static CSchematicUpload finish(String schematic) {
-        return new CSchematicUpload(FINISH, schematic, null, 0, null);
+    public static CSSchematicUpload finish(String schematic) {
+        return new CSSchematicUpload(FINISH, schematic, null, 0, null);
     }
 
-    public CSchematicUpload(PacketBuffer buffer) {
+    public CSSchematicUpload(PacketBuffer buffer) {
         code = buffer.readByte();
         schematic = buffer.readUtf(256);
 
@@ -84,7 +84,8 @@ public class CSchematicUpload implements IMessage {
 
     public void handle(Supplier<Context> context) {
         context.get().enqueueWork(() -> {
-            ServerPlayerEntity player = context.get().getSender();
+            Context ctx = context.get();
+            ServerPlayerEntity player = ctx.getSender();
             if (player == null) {
                 return;
             }
@@ -95,18 +96,18 @@ public class CSchematicUpload implements IMessage {
                     Logger.error("Schematic file must not be null at BEGIN!");
                     success = false;
                 } else {
-                    success = CommonMod.SCHEMATIC_RECEIVER.handleNewUpload(player, schematicFile, size);
+                    success = CommonMod.SERVER_SCHEMATIC_LOADER.handleNewUpload(player, schematicFile, size);
                 }
             }
             if (code == WRITE) {
-                success = CommonMod.SCHEMATIC_RECEIVER.handleWriteRequest(player, schematic, data);
+                success = CommonMod.SERVER_SCHEMATIC_LOADER.handleWriteRequest(player, schematic, data);
             }
             if (code == FINISH) {
-                success = CommonMod.SCHEMATIC_RECEIVER.handleFinishedUpload(player, schematic);
+                success = CommonMod.SERVER_SCHEMATIC_LOADER.handleFinishedUpload(player, schematic);
             }
             if (!success) {
                 NetworkDispatcher.send(PacketDistributor.PLAYER.with(() -> player),
-                        SSchematicReceivedProgress.fail(schematic));
+                        CSSchematicReceivedProgress.fail(schematic));
             }
         });
         context.get().setPacketHandled(true);

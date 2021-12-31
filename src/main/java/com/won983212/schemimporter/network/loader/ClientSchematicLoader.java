@@ -1,175 +1,67 @@
 package com.won983212.schemimporter.network.loader;
 
-import com.won983212.schemimporter.Logger;
-import com.won983212.schemimporter.SchematicImporterMod;
-import com.won983212.schemimporter.Settings;
-import com.won983212.schemimporter.network.packets.CSchematicUpload;
+import com.won983212.schemimporter.client.ClientMod;
+import com.won983212.schemimporter.network.IMessage;
 import com.won983212.schemimporter.network.NetworkDispatcher;
-import com.won983212.schemimporter.schematic.IProgressEntry;
-import com.won983212.schemimporter.schematic.IProgressEntryProducer;
 import com.won983212.schemimporter.schematic.SchematicFile;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
-public class ClientSchematicLoader extends SchematicFileNetwork implements IProgressEntryProducer {
-    private final Map<String, SchematicUploadEntry> activeUploads = new HashMap<>();
-    private int packetCycle;
+public class ClientSchematicLoader extends SchematicFileNetwork implements Consumer<IMessage> {
+    private final SchematicSender sender;
+    private final SchematicReceiver receiver;
 
     public ClientSchematicLoader() {
+        this.sender = new SchematicSender(this);
+        this.receiver = new SchematicReceiver(this, false);
         createFolderIfMissing("schematics");
     }
 
     public void tick() {
-        if (activeUploads.isEmpty()) {
-            return;
+        try {
+            sender.tick();
+        } catch (SchematicNetworkException e) {
+            handleException(e);
         }
-        if (packetCycle-- > 0) {
-            return;
-        }
-        packetCycle = Settings.PACKET_DELAY;
+    }
 
-        for (String schematic : new HashSet<>(activeUploads.keySet())) {
-            continueUpload(schematic);
-        }
+    public void shutdown(){
+        sender.shutdown();
     }
 
     public void startNewUpload(SchematicFile schematic) {
-        String name = schematic.getName();
-        if (activeUploads.containsKey(name)) {
-            Minecraft.getInstance().gui.getChat().addMessage(SchematicImporterMod.translate("message.uploadalready"));
-            return;
-        }
-
-        Path path = Paths.get("schematics", name);
-
-        if (!Files.exists(path)) {
-            Logger.error("Missing Schematic file: " + path.toString());
-            return;
-        }
-
-        InputStream in;
         try {
-            long size = Files.size(path);
-
-            // Too big
-            if (!Minecraft.getInstance().hasSingleplayerServer() &&
-                    isSchematicSizeTooBig(Minecraft.getInstance().player, size)) {
-                Logger.warn(name + " is too big. Cancel uploading: " + size);
-                return;
-            }
-
-            in = Files.newInputStream(path, StandardOpenOption.READ);
-            activeUploads.put(name, new SchematicUploadEntry(name, in, size));
-            NetworkDispatcher.sendToServer(CSchematicUpload.begin(schematic, size));
-        } catch (IOException e) {
-            e.printStackTrace();
+            sender.startNewUpload(schematic);
+        } catch (SchematicNetworkException e) {
+            handleException(e);
         }
     }
 
-    private void continueUpload(String schematic) {
-        if (activeUploads.containsKey(schematic)) {
-            final int maxPacketSize = Settings.SCHEMATIC_PACKET_SIZE;
-            byte[] data = new byte[maxPacketSize];
-            try {
-                SchematicUploadEntry ent = activeUploads.get(schematic);
-                int status = ent.stream.read(data);
-
-                if (status != -1) {
-                    if (status < maxPacketSize) {
-                        data = Arrays.copyOf(data, status);
-                    }
-                    if (Minecraft.getInstance().level != null) {
-                        NetworkDispatcher.sendToServer(CSchematicUpload.write(schematic, data));
-                    } else {
-                        activeUploads.remove(schematic);
-                        return;
-                    }
-                }
-
-                if (status < maxPacketSize) {
-                    finishUpload(schematic);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void finishUpload(String schematic) {
-        if (activeUploads.containsKey(schematic)) {
-            NetworkDispatcher.sendToServer(CSchematicUpload.finish(schematic));
-            activeUploads.remove(schematic);
-        }
+    private void handleException(SchematicNetworkException e) {
+        Minecraft.getInstance().gui.getChat().addMessage(new StringTextComponent(e.getMessage()));
+        e.printStackTrace();
     }
 
     public void handleFailState(String schematic) {
-        activeUploads.remove(schematic);
+        sender.cancelUpload(schematic);
     }
 
-    public void handleServerProgress(String schematic, float serverProgress) {
-        SchematicUploadEntry ent = activeUploads.get(schematic);
-        if (ent != null) {
-            ent.serverSideProgress = serverProgress;
-            Logger.debug("Uploaded " + schematic + ": " + serverProgress);
-        }
+    public void handleServerProgress(String schematic, long uploaded) {
+        sender.setUploaded(schematic, uploaded);
     }
 
-    @Override
-    public Iterable<SchematicUploadEntry> getProgressEntries() {
-        return activeUploads.values();
+    public void registerProgressProducers() {
+        ClientMod.SCHEMATIC_UPLOAD_SCREEN.registerProgressProducer(sender);
+        //TODO receiver도 설치
     }
 
     @Override
-    public int size() {
-        return activeUploads.size();
-    }
-
-    public static class SchematicUploadEntry implements IProgressEntry {
-        private static final String[] SIZE_UNITS = {"B", "KB", "MB", "GB"};
-        private final String key;
-        private final InputStream stream;
-        private final long totalBytes;
-        private float serverSideProgress;
-
-        SchematicUploadEntry(String key, InputStream stream, long size) {
-            this.key = key;
-            this.stream = stream;
-            this.totalBytes = size;
-            this.serverSideProgress = 0;
-        }
-
-        @Override
-        public String getTitle() {
-            return key;
-        }
-
-        @Override
-        public String getSubtitle() {
-            long size = totalBytes;
-            int unitIdx = 0;
-            while (size >= 1024) {
-                unitIdx++;
-                size /= 1024;
-            }
-            return size + SIZE_UNITS[unitIdx];
-        }
-
-        @Override
-        public double getProgress() {
-            return serverSideProgress;
-        }
+    public void accept(IMessage message) {
+        NetworkDispatcher.sendToServer(message);
     }
 }

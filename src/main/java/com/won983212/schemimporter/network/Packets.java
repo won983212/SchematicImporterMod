@@ -13,16 +13,22 @@ import java.util.function.Supplier;
 public enum Packets {
     // from Server packets
     OPEN_SCHEMATIC_MENU(SOpenSchematicMenu.class, SOpenSchematicMenu::new, NetworkDirection.PLAY_TO_CLIENT),
-    SCHEMATIC_LOAD_STATUS(SSchematicReceivedProgress.class, SSchematicReceivedProgress::new, NetworkDirection.PLAY_TO_CLIENT),
     SCHEMATIC_RESPONSE_DELETE(SSchematicDeleteResponse.class, SSchematicDeleteResponse::new, NetworkDirection.PLAY_TO_CLIENT),
 
     // from Client packets
-    SCHEMATIC_UPLOAD(CSchematicUpload.class, CSchematicUpload::new, NetworkDirection.PLAY_TO_SERVER),
     SCHEMATIC_PLACE(CSchematicPlace.class, CSchematicPlace::new, NetworkDirection.PLAY_TO_SERVER),
     SCHEMATIC_SYNC(CSchematicSync.class, CSchematicSync::new, NetworkDirection.PLAY_TO_SERVER),
-    SCHEMATIC_REQUEST_DELETE(CSchematicFileDelete.class, CSchematicFileDelete::new, NetworkDirection.PLAY_TO_SERVER);
+    SCHEMATIC_REQUEST_DELETE(CSchematicFileDelete.class, CSchematicFileDelete::new, NetworkDirection.PLAY_TO_SERVER),
+
+    // both side packets
+    SCHEMATIC_UPLOAD_CLIENT(CSSchematicUpload.class, CSSchematicUpload::new),
+    SCHEMATIC_LOAD_STATUS(CSSchematicReceivedProgress.class, CSSchematicReceivedProgress::new);
 
     private final PacketLoader<?> loader;
+
+    <T extends IMessage> Packets(Class<T> type, Function<PacketBuffer, T> factory) {
+        this(type, factory, null);
+    }
 
     <T extends IMessage> Packets(Class<T> type, Function<PacketBuffer, T> factory, NetworkDirection direction) {
         this.loader = new PacketLoader<>(type, factory, direction);

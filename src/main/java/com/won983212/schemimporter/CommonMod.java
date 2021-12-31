@@ -14,12 +14,11 @@ import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 
 @Mod.EventBusSubscriber
 public class CommonMod {
-    public static final ServerSchematicLoader SCHEMATIC_RECEIVER = new ServerSchematicLoader();
-    public static final TaskScheduler CLIENT_SCHEDULER = new TaskScheduler();
+    public static final ServerSchematicLoader SERVER_SCHEMATIC_LOADER = new ServerSchematicLoader();
     public static final TaskScheduler SERVER_SCHEDULER = new TaskScheduler();
 
     public void onCommonSetup(FMLCommonSetupEvent event) {
-        SCHEMATIC_RECEIVER.tick();
+        SERVER_SCHEMATIC_LOADER.tick();
     }
 
     @SubscribeEvent
@@ -28,7 +27,7 @@ public class CommonMod {
             return;
         }
 
-        CommonMod.SCHEMATIC_RECEIVER.tick();
+        CommonMod.SERVER_SCHEMATIC_LOADER.tick();
         CommonMod.SERVER_SCHEDULER.tick();
     }
 
@@ -42,7 +41,7 @@ public class CommonMod {
 
     @SubscribeEvent
     public static void serverStopped(FMLServerStoppingEvent event) {
-        CommonMod.SCHEMATIC_RECEIVER.shutdown();
+        CommonMod.SERVER_SCHEMATIC_LOADER.shutdown();
     }
 
 }
