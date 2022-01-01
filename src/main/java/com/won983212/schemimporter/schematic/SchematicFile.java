@@ -3,6 +3,7 @@ package com.won983212.schemimporter.schematic;
 import com.won983212.schemimporter.Logger;
 import com.won983212.schemimporter.Settings;
 import com.won983212.schemimporter.schematic.parser.SchematicFileParser;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.thread.SidedThreadGroups;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -20,21 +21,33 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SchematicFile {
+    private final String owner;
     private final String name;
     private final String hash;
 
-    private SchematicFile(File f) {
-        this.name = f.getName();
-        this.hash = loadHash(f);
+
+    private SchematicFile(String owner, String name, String hash) {
+        this.owner = owner;
+        this.name = name;
+        this.hash = hash;
+    }
+
+    public SchematicFile(String owner, File f) {
+        this(owner, f.getName(), loadHash(f));
     }
 
     public SchematicFile(PacketBuffer readBuffer) {
+        this.owner = readBuffer.readUtf(64);
         this.name = readBuffer.readUtf(64);
         this.hash = readBuffer.readUtf(64);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getOwner() {
+        return owner;
     }
 
     @Override
@@ -60,11 +73,12 @@ public class SchematicFile {
     }
 
     public void writeTo(PacketBuffer buffer) {
+        buffer.writeUtf(owner, 64);
         buffer.writeUtf(name, 64);
         buffer.writeUtf(hash, 64);
     }
 
-    public boolean equals(Path filePath) {
+    public boolean isSameHash(Path filePath) {
         File file = filePath.toFile();
         if (!file.exists()) {
             return false;
@@ -104,7 +118,7 @@ public class SchematicFile {
         return Arrays.stream(files)
                 .filter(File::isFile)
                 .filter((f) -> !SchematicFileParser.isUnsupportedExtension(f.getName()))
-                .map(SchematicFile::new)
+                .map((f) -> new SchematicFile(owner, f))
                 .collect(Collectors.toList());
     }
 
@@ -119,9 +133,24 @@ public class SchematicFile {
 
     public static Path getDirectoryPath(String owner) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-            return Paths.get("schematics", Settings.USER_SCHEMATIC_DIR_NAME, owner).toAbsolutePath();
+            return Paths.get(Settings.SCHEMATIC_DIR_NAME, Settings.UPLOADED_SCHEMATIC_DIR_NAME, owner).toAbsolutePath();
         } else {
-            return Paths.get("schematics").toAbsolutePath();
+            return Paths.get(Settings.SCHEMATIC_DIR_NAME).toAbsolutePath();
         }
+    }
+
+    public static Path getFilePathFromItemStack(ItemStack blueprint) throws IOException {
+        String owner = blueprint.getTag().getString("Owner");
+        String schematic = blueprint.getTag().getString("File");
+        if (SchematicFileParser.isUnsupportedExtension(schematic)) {
+            throw new IOException("Unsupported file!");
+        }
+        return getFilePath(owner, schematic);
+    }
+
+    public static String keyToName(String schematicKey){
+        Path path = Paths.get(schematicKey);
+        int nameCount = path.getNameCount();
+        return path.subpath(nameCount - 1, nameCount).toString();
     }
 }

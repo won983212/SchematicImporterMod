@@ -2,17 +2,24 @@ package com.won983212.schemimporter.network.loader;
 
 import com.won983212.schemimporter.Settings;
 import com.won983212.schemimporter.schematic.IProgressEntry;
+import com.won983212.schemimporter.schematic.SchematicFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class SchematicNetworkProgress<S> implements IProgressEntry {
     private static final String[] SIZE_UNITS = {"B", "KB", "MB", "GB"};
     private final String key;
+    private final Path path;
     private final S obj;
     private final long totalBytes;
     private long bytesUploaded;
     private int idleTime;
 
-    protected SchematicNetworkProgress(String key, S obj, long size) {
+
+    protected SchematicNetworkProgress(String key, Path filePath, S obj, long size) {
         this.key = key;
+        this.path = filePath;
         this.obj = obj;
         this.totalBytes = size;
         this.bytesUploaded = 0;
@@ -21,7 +28,7 @@ public class SchematicNetworkProgress<S> implements IProgressEntry {
 
     @Override
     public String getTitle() {
-        return getSchematicKey();
+        return SchematicFile.keyToName(key);
     }
 
     @Override
@@ -35,10 +42,6 @@ public class SchematicNetworkProgress<S> implements IProgressEntry {
         return size + SIZE_UNITS[unitIdx];
     }
 
-    public String getSchematicKey() {
-        return key;
-    }
-
     @Override
     public double getProgress() {
         return (double) bytesUploaded / totalBytes;
@@ -46,6 +49,10 @@ public class SchematicNetworkProgress<S> implements IProgressEntry {
 
     public S getValue() {
         return obj;
+    }
+
+    public Path getFilePath() {
+        return path;
     }
 
     public void resetIdleTime() {

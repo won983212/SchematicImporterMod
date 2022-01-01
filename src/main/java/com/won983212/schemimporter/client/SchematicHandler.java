@@ -3,6 +3,7 @@ package com.won983212.schemimporter.client;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.won983212.schemimporter.ModKeys;
+import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.client.gui.ToolSelectionScreen;
 import com.won983212.schemimporter.client.render.SuperRenderTypeBuffer;
 import com.won983212.schemimporter.client.render.outliner.AABBOutline;
@@ -12,6 +13,7 @@ import com.won983212.schemimporter.item.SchematicItem;
 import com.won983212.schemimporter.network.NetworkDispatcher;
 import com.won983212.schemimporter.network.packets.CSchematicPlace;
 import com.won983212.schemimporter.network.packets.CSchematicSync;
+import com.won983212.schemimporter.schematic.SchematicFile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.Screen;
@@ -25,9 +27,13 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.feature.template.PlacementSettings;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.function.Consumer;
 
-public class SchematicHandler {
+public class SchematicHandler implements Consumer<String> {
 
     private String displayedSchematic;
     private SchematicTransformation transformation;
@@ -44,13 +50,16 @@ public class SchematicHandler {
     private AABBOutline outline;
 
     private ToolSelectionScreen selectionScreen;
+    private final HashSet<String> downloadingFiles;
     private final SchematicRendererManager rendererManager;
 
     public SchematicHandler() {
         currentTool = Tools.Deploy;
+        this.downloadingFiles = new HashSet<>();
         rendererManager = new SchematicRendererManager();
         selectionScreen = new ToolSelectionScreen(ImmutableList.of(Tools.Deploy), this::equip);
         transformation = new SchematicTransformation();
+        ClientMod.CLIENT_SCHEMATIC_LOADER.registerRequestFinishCallback(this);
     }
 
     public void unload() {
@@ -61,6 +70,9 @@ public class SchematicHandler {
 
     public void tick() {
         ClientPlayerEntity player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
 
         if (activeSchematicItem != null && transformation != null) {
             transformation.tick();
@@ -83,15 +95,35 @@ public class SchematicHandler {
             return;
         }
 
+        String fileName = stack.getTag().getString("File");
         boolean differentItemStack = prevStack != null && !ItemStack.tagMatches(stack, prevStack);
-        boolean needsUpdate = !stack.getTag().getString("File").equals(displayedSchematic);
-        if (!active || needsUpdate || differentItemStack) {
-            init(stack, needsUpdate);
+        boolean needsUpdate = !fileName.equals(displayedSchematic);
+
+        if (prevStack == null || differentItemStack) {
+            ItemStack renderTarget = activeSchematicItem;
+            try {
+                Path targetFile = SchematicFile.getFilePathFromItemStack(stack);
+                if (!targetFile.toFile().exists()) {
+                    ClientMod.CLIENT_SCHEMATIC_LOADER.requestUpload(stack);
+                    Minecraft.getInstance().gui.getChat().addMessage(
+                            SchematicImporterMod.translate("message.requestschematic", fileName));
+                    renderTarget = null;
+                    downloadingFiles.add(fileName);
+                } else if(downloadingFiles.contains(fileName)){
+                    renderTarget = null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            init(renderTarget);
+        } else if (!active || needsUpdate) {
+            init(activeSchematicItem);
         }
 
         if (syncCooldown > 0) {
             syncCooldown--;
         }
+
         if (syncCooldown == 1) {
             sync();
         }
@@ -100,13 +132,26 @@ public class SchematicHandler {
         currentTool.getTool().updateSelection();
     }
 
-    private void init(ItemStack stack, boolean needsRendererUpdate) {
-        loadSettings(stack);
-        displayedSchematic = stack.getTag().getString("File");
+    @Override
+    public void accept(String s) {
+        downloadingFiles.remove(s);
+        if (activeSchematicItem != null) {
+            if (activeSchematicItem.getTag().getString("File").equals(s)) {
+                init(activeSchematicItem);
+                sync();
+                selectionScreen.update();
+                currentTool.getTool().updateSelection();
+            }
+        }
+    }
+
+    private void init(ItemStack renderTargetSchematicItem) {
+        loadSettings(activeSchematicItem);
+        displayedSchematic = activeSchematicItem.getTag().getString("File");
         active = true;
         if (deployed) {
-            if (needsRendererUpdate) {
-                rendererManager.setCurrentSchematic(activeSchematicItem);
+            if (renderTargetSchematicItem != null) {
+                rendererManager.setCurrentSchematic(renderTargetSchematicItem);
             }
             Tools toolBefore = currentTool;
             selectionScreen = new ToolSelectionScreen(Arrays.asList(Tools.values()), this::equip);

@@ -20,6 +20,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Mirror;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.gen.feature.template.PlacementSettings;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,6 +91,7 @@ public class SchematicRendererManager implements IProgressEntryProducer {
                     .groupId(schematicFilePath.hashCode())
                     .exceptionally((e) -> {
                         Logger.error(e);
+                        Minecraft.getInstance().gui.getChat().addMessage(SchematicImporterMod.translate("message.exception"));
                         loadingEntries.remove(schematicFilePath);
                     })
                     .then((schematic) -> {

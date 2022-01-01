@@ -30,9 +30,9 @@ import java.awt.*;
 @Mod.EventBusSubscriber(modid = SchematicImporterMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientMod extends CommonMod {
     public static final TaskScheduler CLIENT_SCHEDULER = new TaskScheduler();
-    public static final SchematicHandler SCHEMATIC_HANDLER = new SchematicHandler();
     public static final ClientSchematicLoader CLIENT_SCHEMATIC_LOADER = new ClientSchematicLoader();
     public static final SchematicStatusScreen SCHEMATIC_UPLOAD_SCREEN = new SchematicStatusScreen();
+    public static final SchematicHandler SCHEMATIC_HANDLER = new SchematicHandler();
 
     static {
         CLIENT_SCHEMATIC_LOADER.registerProgressProducers();

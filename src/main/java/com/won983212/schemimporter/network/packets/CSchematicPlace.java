@@ -90,7 +90,6 @@ public class CSchematicPlace implements IMessage {
     }
 
     private static void sendSchematicMessage(ServerPlayerEntity player, String message) {
-        Logger.info(message);
         player.sendMessage(new StringTextComponent(TextFormatting.GOLD + "[Schematic] " + TextFormatting.RESET + message), player.getUUID());
     }
 }

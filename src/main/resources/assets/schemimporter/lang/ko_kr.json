@@ -23,6 +23,7 @@
   "schemimporter.message.receiveexceed" : "전달받은 크기보다 더 많이 받았습니다: %s",
   "schemimporter.message.notactiveschem" : "전송중이지 않은 Schematic입니다: %s",
   "schemimporter.message.leakfile" : "파일의 일부가 누락되었습니다. (원본: %d B, 다운로드한 파일: %d B)",
+  "schemimporter.message.requestschematic" : "없는 파일이므로, 서버로부터 Schematic을 다운받습니다: %s",
 
   "schemimporter.command.error.cantexecuteentity": "이 명령은 반드시 플레이어에 의해서만 실행되어야 합니다.",
 

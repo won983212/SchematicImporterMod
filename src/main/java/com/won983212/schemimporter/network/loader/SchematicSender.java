@@ -7,7 +7,6 @@ import com.won983212.schemimporter.network.IMessage;
 import com.won983212.schemimporter.network.packets.CSSchematicUpload;
 import com.won983212.schemimporter.schematic.IProgressEntryProducer;
 import com.won983212.schemimporter.schematic.SchematicFile;
-import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,13 +50,13 @@ public class SchematicSender implements IProgressEntryProducer {
         activeUploads.clear();
     }
 
-    public void startNewUpload(SchematicFile schematic) {
-        String name = schematic.getName();
+    public void startNewUpload(String basePath, SchematicFile schematicFile) {
+        String name = schematicFile.getOwner() + "/" + schematicFile.getName();
         if (activeUploads.containsKey(name)) {
             throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.uploadalready"));
         }
 
-        Path path = Paths.get("schematics", name);
+        Path path = Paths.get(basePath, schematicFile.getName());
 
         if (!Files.exists(path)) {
             throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.missingschematic", path.toString()));
@@ -65,64 +64,61 @@ public class SchematicSender implements IProgressEntryProducer {
 
         try {
             long size = Files.size(path);
-
-            // Too big
-            if (!Minecraft.getInstance().hasSingleplayerServer() &&
-                    SchematicFileNetwork.isSchematicSizeTooBig(size)) {
+            if (SchematicFileNetwork.isSchematicSizeTooBig(size)) {
                 throw new SchematicNetworkException(SchematicFileNetwork.getTooBigSizeMessage(name, size / 1000));
             }
 
             InputStream in = Files.newInputStream(path, StandardOpenOption.READ);
-            SchematicNetworkProgress<InputStream> ent = new SchematicNetworkProgress<>(name, in, size);
-            packetSender.accept(CSSchematicUpload.begin(schematic, size));
+            SchematicNetworkProgress<InputStream> ent = new SchematicNetworkProgress<>(name, path, in, size);
+            packetSender.accept(CSSchematicUpload.begin(schematicFile, size));
             activeUploads.put(name, ent);
         } catch (IOException e) {
             throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.exception"), e);
         }
     }
 
-    private void continueUpload(String schematic) {
-        if (activeUploads.containsKey(schematic)) {
+    private void continueUpload(String schematicKey) {
+        if (activeUploads.containsKey(schematicKey)) {
             final int maxPacketSize = Settings.SCHEMATIC_PACKET_SIZE;
             byte[] data = new byte[maxPacketSize];
             try {
-                SchematicNetworkProgress<InputStream> ent = activeUploads.get(schematic);
+                SchematicNetworkProgress<InputStream> ent = activeUploads.get(schematicKey);
                 int len = ent.getValue().read(data);
 
                 if (len != -1) {
                     if (len < maxPacketSize) {
                         data = Arrays.copyOf(data, len);
                     }
-                    packetSender.accept(CSSchematicUpload.write(schematic, data));
+                    packetSender.accept(CSSchematicUpload.write(schematicKey, data));
                 }
 
                 if (len < maxPacketSize) {
-                    finishUpload(schematic);
+                    finishUpload(schematicKey);
                 }
             } catch (Exception e) {
-                activeUploads.remove(schematic);
+                activeUploads.remove(schematicKey);
                 throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.exception"), e);
             }
         }
     }
 
-    private void finishUpload(String schematic) {
-        SchematicNetworkProgress<InputStream> ent = activeUploads.remove(schematic);
+    private void finishUpload(String schematicKey) {
+        SchematicNetworkProgress<InputStream> ent = activeUploads.remove(schematicKey);
         if (ent != null) {
-            packetSender.accept(CSSchematicUpload.finish(schematic));
+            packetSender.accept(CSSchematicUpload.finish(schematicKey));
         }
     }
 
-    public void cancelUpload(String schematic) {
-        activeUploads.remove(schematic);
-    }
-
-    public void setUploaded(String schematic, long uploaded) {
-        SchematicNetworkProgress<InputStream> ent = activeUploads.get(schematic);
+    public void handleProgress(String schematicKey, long uploaded) {
+        SchematicNetworkProgress<InputStream> ent = activeUploads.get(schematicKey);
         if (ent != null) {
             ent.setUploaded(uploaded);
-            Logger.debug(String.format("Uploaded %s %.2f%%", schematic, ent.getProgress()));
+            Logger.debug(String.format("Uploaded %s %.2f%%", schematicKey, ent.getProgress()));
         }
+    }
+
+    public void cancelUpload(String schematicKey) {
+        activeUploads.remove(schematicKey);
     }
 
     @Override

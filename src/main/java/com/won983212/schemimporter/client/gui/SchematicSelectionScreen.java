@@ -23,7 +23,7 @@ public class SchematicSelectionScreen extends PanelScreen {
     public SchematicSelectionScreen(List<SchematicFile> serverSideFiles) {
         super(new StringTextComponent("Schematic Selection Screen"));
 
-        Set<SchematicFile> clientFileSet = new HashSet<>(SchematicFile.getFileList(null));
+        Set<SchematicFile> clientFileSet = new HashSet<>(SchematicFile.getFileList(""));
         for (SchematicFile serverFile : serverSideFiles) {
             if (!clientFileSet.contains(serverFile)) {
                 continue;

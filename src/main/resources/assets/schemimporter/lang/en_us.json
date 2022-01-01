@@ -23,6 +23,7 @@
   "schemimporter.message.receiveexceed" : "Received more data than Expected: %s",
   "schemimporter.message.notactiveschem" : "Not activated schematic: %s",
   "schemimporter.message.leakfile" : "Some parts of file is leaked. (Original: %d B, Downloaded: %d B)",
+  "schemimporter.message.requestschematic" : "Requested unknown schematic file: %s",
 
   "schemimporter.command.error.cantexecuteentity": "This command must be executed by player entity.",
 

@@ -14,38 +14,42 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
 
-public class ServerSchematicLoader extends SchematicFileNetwork implements Consumer<IMessage> {
+public class ServerSchematicLoader implements SchematicFileNetwork {
+    private final SchematicSender sender;
     private final SchematicReceiver receiver;
     private ServerPlayerEntity player;
 
-    public ServerSchematicLoader() {
-        receiver = new SchematicReceiver(this, true);
-    }
 
-    public String getSchematicPath() {
-        return "schematics/" + Settings.USER_SCHEMATIC_DIR_NAME;
+    public ServerSchematicLoader() {
+        this.sender = new SchematicSender(this);
+        this.receiver = new SchematicReceiver(this, true);
+        SchematicFileNetwork.createFolderIfMissing(Settings.SCHEMATIC_DIR_NAME);
     }
 
     public void tick() {
-        receiver.tick();
+        try {
+            sender.tick();
+            receiver.tick();
+        } catch (SchematicNetworkException e) {
+            Logger.error(e);
+        }
     }
 
     public void shutdown() {
+        sender.shutdown();
         receiver.shutdown();
     }
 
-    public boolean deleteSchematic(ServerPlayerEntity player, String schematic) {
-        Path playerSchematicsPath = Paths.get(getSchematicPath(), player.getGameProfile().getName()).toAbsolutePath();
-        Path path = playerSchematicsPath.resolve(schematic).normalize();
-        if (!path.startsWith(playerSchematicsPath)) {
-            Logger.warn("Attempted Schematic Upload with directory escape: " + schematic);
-            return false;
-        }
+    public void setPlayer(ServerPlayerEntity player) {
+        this.player = player;
+    }
 
+    public boolean deleteSchematic(ServerPlayerEntity player, String schematic) {
+        this.player = player;
+        Path schematicPath = tryGetUploadPath(schematic, false);
         try {
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(schematicPath);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -53,63 +57,56 @@ public class ServerSchematicLoader extends SchematicFileNetwork implements Consu
         }
     }
 
-    public boolean handleNewUpload(ServerPlayerEntity player, SchematicFile schematic, long size) {
-        Logger.debug("New");
-        this.player = player;
-
-        Path playerSchematicsPath = Paths.get(getSchematicPath(), player.getGameProfile().getName()).toAbsolutePath();
-        Path uploadPath = playerSchematicsPath.resolve(schematic.getName()).normalize();
-        if (!uploadPath.startsWith(playerSchematicsPath)) {
-            Logger.warn("Attempted Schematic Upload with directory escape: " + playerSchematicsPath);
-            return false;
-        }
-
-        try {
-            if (!receiver.handleNewUpload(getBasePath(), schematic, size)) {
-                giveSchematicItem(player, schematic.getName());
-            }
-            return true;
-        } catch (SchematicNetworkException e) {
-            handleException(e);
-        }
-        return false;
+    public void handleUploadRequest(String owner, String schematic) throws SchematicNetworkException {
+        tryGetUploadPath(owner + "/" + schematic, true);
+        Path fileDirectory = Paths.get(Settings.SCHEMATIC_DIR_NAME, Settings.UPLOADED_SCHEMATIC_DIR_NAME, owner);
+        SchematicFile file = new SchematicFile(owner, fileDirectory.resolve(schematic).toFile());
+        sender.startNewUpload(fileDirectory.toString(), file);
     }
 
-    public boolean handleWriteRequest(ServerPlayerEntity player, String schematic, byte[] data) {
-        Logger.debug("write");
-        this.player = player;
-        try {
-            receiver.handleWriteRequest(getBasePath() + "/" + schematic, schematic, data);
-            return true;
-        } catch (SchematicNetworkException e) {
-            handleException(e);
+    public void handleNewUpload(SchematicFile schematic, long size) throws SchematicNetworkException {
+        tryGetUploadPath(schematic.getName(), false);
+        if (!receiver.newDownloadRequest(getBasePath(), schematic, size)) {
+            giveSchematicItem(schematic.getName());
         }
-        return false;
     }
 
-    public boolean handleFinishedUpload(ServerPlayerEntity player, String schematic) {
-        Logger.debug("finish");
-        this.player = player;
-        try {
-            if (receiver.handleFinishedUpload(getBasePath() + "/" + schematic)) {
-                giveSchematicItem(player, schematic);
-                return true;
-            }
-        } catch (SchematicNetworkException e) {
-            handleException(e);
+    public void handleWriteRequest(String schematicKey, byte[] data) throws SchematicNetworkException {
+        receiver.handleWriteRequest(schematicKey, data);
+    }
+
+    public void handleFinishedUpload(String schematicKey) throws SchematicNetworkException {
+        if (receiver.handleFinishedUpload(schematicKey)) {
+            giveSchematicItem(SchematicFile.keyToName(schematicKey));
         }
-        return false;
+    }
+
+    public void handleFailState(String schematicKey) {
+        sender.cancelUpload(schematicKey);
+    }
+
+    public void handleProgress(String schematicKey, long uploaded) {
+        sender.handleProgress(schematicKey, uploaded);
+    }
+
+    private Path tryGetUploadPath(String schematicName, boolean allowOtherPlayerAccess) {
+        Path basePath = Paths.get(Settings.SCHEMATIC_DIR_NAME, Settings.UPLOADED_SCHEMATIC_DIR_NAME).toAbsolutePath();
+        if (!allowOtherPlayerAccess) {
+            basePath = basePath.resolve(player.getGameProfile().getName());
+        }
+        Path uploadPath = basePath.resolve(schematicName).normalize();
+        if (!uploadPath.startsWith(basePath)) {
+            throw new SchematicNetworkException("Attempted Schematic Upload with directory escape: " + schematicName);
+        }
+        return uploadPath;
     }
 
     private String getBasePath() {
-        return "schematics/" + Settings.USER_SCHEMATIC_DIR_NAME + "/" + player.getGameProfile().getName();
+        return Settings.SCHEMATIC_DIR_NAME + "/" + Settings.UPLOADED_SCHEMATIC_DIR_NAME
+                + "/" + player.getGameProfile().getName();
     }
 
-    private void handleException(SchematicNetworkException e) {
-        e.printStackTrace();
-    }
-
-    private void giveSchematicItem(ServerPlayerEntity player, String schematic) {
+    private void giveSchematicItem(String schematic) {
         ItemStack item = SchematicItem.create(schematic, player.getGameProfile().getName());
         player.inventory.add(item);
     }

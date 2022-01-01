@@ -2,7 +2,6 @@ package com.won983212.schemimporter.schematic.parser;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.won983212.schemimporter.Logger;
 import com.won983212.schemimporter.schematic.IProgressEvent;
 import com.won983212.schemimporter.schematic.SchematicFile;
 import com.won983212.schemimporter.schematic.container.SchematicContainer;
@@ -40,7 +39,7 @@ public class SchematicFileParser {
 
     public static BlockPos parseSchematicSizeFromItem(ItemStack blueprint) {
         try {
-            File file = getSchematicPath(blueprint).toFile();
+            File file = SchematicFile.getFilePathFromItemStack(blueprint).toFile();
             SchematicContainer t = schematicCache.getIfPresent(file.getAbsolutePath());
             if (t != null) {
                 return t.getSize();
@@ -54,7 +53,7 @@ public class SchematicFileParser {
 
     public static IAsyncTask<SchematicContainer> parseSchematicFromItemAsync(ItemStack blueprint, IProgressEvent event) {
         try {
-            Path path = getSchematicPath(blueprint);
+            Path path = SchematicFile.getFilePathFromItemStack(blueprint);
             return SchematicFileParser.parseSchematicFileAsync(path.toFile(), event);
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,31 +79,18 @@ public class SchematicFileParser {
         schematicCache.invalidateAll();
     }
 
-    private static Path getSchematicPath(ItemStack blueprint) throws IOException {
-        String owner = blueprint.getTag().getString("Owner");
-        String schematic = blueprint.getTag().getString("File");
-        if (SchematicFileParser.isUnsupportedExtension(schematic)) {
-            throw new IOException("Unsupported file!");
-        }
-        return SchematicFile.getFilePath(owner, schematic);
-    }
-
     private static AbstractSchematicReader createSupportedReader(File file) throws IOException {
         String fileName = file.getName();
         String fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1);
-        AbstractSchematicReader reader = null;
         try {
-            reader = extensionToReaderMap.get(fileExtension)
-                    .getConstructor(File.class)
-                    .newInstance(file);
+            Class<? extends AbstractSchematicReader> readerCls = extensionToReaderMap.get(fileExtension);
+            if (readerCls == null) {
+                throw new IOException("Unsupported type: " + fileExtension);
+            }
+            return readerCls.getConstructor(File.class).newInstance(file);
         } catch (InstantiationException | IllegalAccessException |
                 NoSuchMethodException | InvocationTargetException e) {
-            Logger.error(e);
-        }
-        if (reader != null) {
-            return reader;
-        } else {
-            throw new IOException("Unsupported type: " + fileExtension);
+            throw new IOException(e);
         }
     }
 }
