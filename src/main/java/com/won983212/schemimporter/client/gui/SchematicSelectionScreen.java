@@ -3,20 +3,29 @@ package com.won983212.schemimporter.client.gui;
 import com.google.common.collect.Iterables;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.won983212.schemimporter.ModTextures;
+import com.won983212.schemimporter.Settings;
 import com.won983212.schemimporter.client.ClientMod;
 import com.won983212.schemimporter.client.gui.component.HoveringCover;
 import com.won983212.schemimporter.client.gui.component.ScrollSelector;
 import com.won983212.schemimporter.network.NetworkDispatcher;
-import com.won983212.schemimporter.schematic.SchematicFile;
 import com.won983212.schemimporter.network.packets.CSchematicFileDelete;
+import com.won983212.schemimporter.schematic.SchematicFile;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.StringTextComponent;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class SchematicSelectionScreen extends PanelScreen {
     private final List<SchematicFileValue> schematicFiles = new ArrayList<>();
     private ScrollSelector fileSelector;
+    private HoveringCover openBtn;
     private HoveringCover uploadBtn;
     private HoveringCover deleteBtn;
 
@@ -38,6 +47,16 @@ public class SchematicSelectionScreen extends PanelScreen {
     }
 
     private void onAccept(HoveringCover btn) {
+        if (btn == openBtn) {
+            try {
+                Path p = Paths.get(Minecraft.getInstance().gameDirectory.toString(), Settings.SCHEMATIC_DIR_NAME);
+                Runtime.getRuntime().exec("explorer " + p.toAbsolutePath().toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+
         int index = fileSelector.getSelectedIndex();
         if (index == -1) {
             onClose();
@@ -61,6 +80,8 @@ public class SchematicSelectionScreen extends PanelScreen {
     protected void init() {
         super.init();
         this.children.clear();
+        this.openBtn = new HoveringCover(21, 21, 18, 18, SchematicSelectionScreen.this::onAccept);
+        this.children.add(openBtn);
         this.uploadBtn = new HoveringCover(178, 55, 18, 18, SchematicSelectionScreen.this::onAccept);
         this.children.add(uploadBtn);
         this.deleteBtn = new HoveringCover(152, 55, 18, 18, SchematicSelectionScreen.this::onAccept);

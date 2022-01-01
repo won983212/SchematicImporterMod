@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-// TODO 같은 File을 두 명이 동시에 print하면, 한명이 기다리도록 하기.
 public class SchematicFileParser {
 
     private static final Cache<String, SchematicContainer> schematicCache;

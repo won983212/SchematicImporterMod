@@ -20,8 +20,6 @@ public class ModIcons {
             TOOL_ROTATE = next(),
             TOOL_MIRROR = next(),
             TOOL_DEPLOY = next(),
-            UPLOADING = next(),
-            CANCEL = next(),
             EMPTY_BLOCK = next();
 
     public ModIcons(int x, int y) {
