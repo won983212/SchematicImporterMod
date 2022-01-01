@@ -41,7 +41,7 @@ public class CSSchematicUpload implements IMessage {
     }
 
     public static CSSchematicUpload begin(SchematicFile schematic, long size) {
-        return new CSSchematicUpload(BEGIN, schematic.getOwner(), schematic.getName(), schematic, size, null);
+        return new CSSchematicUpload(BEGIN, schematic.getOwner(), schematic.toString(), schematic, size, null);
     }
 
     public static CSSchematicUpload write(String schematicKey, byte[] data) {

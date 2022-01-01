@@ -56,7 +56,7 @@ public class SchematicReceiver implements IProgressEntryProducer {
      */
     public boolean newDownloadRequest(String basePath, SchematicFile schematic, long size) {
         String name = schematic.getName();
-        String key = schematic.getOwner() + "/" + name;
+        String key = schematic.toString();
         Path uploadPath = Paths.get(basePath, name).normalize();
 
         SchematicFileNetwork.createFolderIfMissing(basePath);
@@ -66,7 +66,7 @@ public class SchematicReceiver implements IProgressEntryProducer {
         }
 
         if (schematic.isSameHash(uploadPath)) {
-            throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.alreadyexists", uploadPath.toString()));
+            return false;
         }
 
         if (SchematicFileNetwork.isSchematicSizeTooBig(size)) {

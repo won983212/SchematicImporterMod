@@ -51,8 +51,8 @@ public class SchematicSender implements IProgressEntryProducer {
     }
 
     public void startNewUpload(String basePath, SchematicFile schematicFile) {
-        String name = schematicFile.getOwner() + "/" + schematicFile.getName();
-        if (activeUploads.containsKey(name)) {
+        String key = schematicFile.toString();
+        if (activeUploads.containsKey(key)) {
             throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.uploadalready"));
         }
 
@@ -65,13 +65,13 @@ public class SchematicSender implements IProgressEntryProducer {
         try {
             long size = Files.size(path);
             if (SchematicFileNetwork.isSchematicSizeTooBig(size)) {
-                throw new SchematicNetworkException(SchematicFileNetwork.getTooBigSizeMessage(name, size / 1000));
+                throw new SchematicNetworkException(SchematicFileNetwork.getTooBigSizeMessage(key, size / 1000));
             }
 
             InputStream in = Files.newInputStream(path, StandardOpenOption.READ);
-            SchematicNetworkProgress<InputStream> ent = new SchematicNetworkProgress<>(name, path, in, size);
+            SchematicNetworkProgress<InputStream> ent = new SchematicNetworkProgress<>(key, path, in, size);
             packetSender.accept(CSSchematicUpload.begin(schematicFile, size));
-            activeUploads.put(name, ent);
+            activeUploads.put(key, ent);
         } catch (IOException e) {
             throw new SchematicNetworkException(SchematicImporterMod.translateAsString("message.exception"), e);
         }

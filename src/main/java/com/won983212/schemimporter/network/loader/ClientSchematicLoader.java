@@ -100,8 +100,10 @@ public class ClientSchematicLoader implements SchematicFileNetwork {
 
     @Override
     public void handleException(SchematicNetworkException e) {
-        Minecraft.getInstance().gui.getChat().addMessage(new StringTextComponent(e.getMessage()));
-        Logger.error(e);
+        if(!e.getMessage().isEmpty()) {
+            Minecraft.getInstance().gui.getChat().addMessage(new StringTextComponent(e.getMessage()));
+            Logger.error(e);
+        }
     }
 
     public void registerProgressProducers() {

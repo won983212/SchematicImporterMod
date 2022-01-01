@@ -17,6 +17,7 @@ import net.minecraftforge.fml.network.NetworkEvent.Context;
 
 import java.util.function.Supplier;
 
+// TODO 이미 있는 파일 upload하면 error
 public class CSchematicPlace implements IMessage {
     public final ItemStack stack;
 

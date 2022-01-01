@@ -29,7 +29,9 @@ public interface SchematicFileNetwork extends Consumer<IMessage> {
     void accept(IMessage message);
 
     default void handleException(SchematicNetworkException e) {
-        Logger.error(e);
+        if (!e.getMessage().isEmpty()) {
+            Logger.error(e);
+        }
     }
 
     static void createFolderIfMissing(String path) {

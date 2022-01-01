@@ -1,6 +1,7 @@
 package com.won983212.schemimporter.network.loader;
 
 import com.won983212.schemimporter.Logger;
+import com.won983212.schemimporter.SchematicImporterMod;
 import com.won983212.schemimporter.Settings;
 import com.won983212.schemimporter.item.SchematicItem;
 import com.won983212.schemimporter.network.IMessage;
@@ -68,6 +69,7 @@ public class ServerSchematicLoader implements SchematicFileNetwork {
         tryGetUploadPath(schematic.getName(), false);
         if (!receiver.newDownloadRequest(getBasePath(), schematic, size)) {
             giveSchematicItem(schematic.getName());
+            throw new SchematicNetworkException("");
         }
     }
 

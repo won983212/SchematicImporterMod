@@ -69,7 +69,7 @@ public class SchematicFile {
 
     @Override
     public String toString() {
-        return "SchematicFile[" + name + "]";
+        return owner + "/" + name;
     }
 
     public void writeTo(PacketBuffer buffer) {
