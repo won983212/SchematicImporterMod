@@ -10,6 +10,7 @@ public class Settings {
     public static final int MAX_TOTAL_SCHEMATIC_SIZE = 1024;
     public static final int SCHEMATIC_PACKET_SIZE = 4096;
     public static final int PACKET_DELAY = 10;
+    public static final int PER_CHUNK_SEND_DELAY = 5;
 
     public static final String SCHEMATIC_DIR_NAME = "schematics";
     public static final String UPLOADED_SCHEMATIC_DIR_NAME = "uploaded";

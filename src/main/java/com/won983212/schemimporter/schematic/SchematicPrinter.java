@@ -10,6 +10,7 @@ import com.won983212.schemimporter.task.IElasticAsyncTask;
 import com.won983212.schemimporter.task.StagedTaskProcessor;
 import com.won983212.schemimporter.task.TaskScheduler;
 import com.won983212.schemimporter.utility.EntityUtils;
+import com.won983212.schemimporter.utility.FastBlockPlacer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -31,11 +32,10 @@ import net.minecraft.world.gen.feature.template.PlacementSettings;
 import net.minecraft.world.gen.feature.template.Template;
 import net.minecraftforge.common.util.Constants;
 
-// TODO Block 설치할 떄 too many packets!!
 public class SchematicPrinter implements IElasticAsyncTask<Void> {
 
     private enum PrintStage {
-        ERROR, LOAD_SCHEMATIC, BLOCKS, UPDATE_BLOCKS, ENTITIES
+        ERROR, LOAD_SCHEMATIC, BLOCKS, UPDATE_BLOCKS, SEND_BLOCKS, ENTITIES
     }
 
     private int maxBatchCount = Integer.MAX_VALUE;
@@ -46,6 +46,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
     private StagedTaskProcessor<PrintStage> printStage;
 
     private final World world;
+    private final FastBlockPlacer placer;
     private final IProgressEvent event;
     private final BlockPos.Mutable current;
     private long processed;
@@ -59,6 +60,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
 
     private SchematicPrinter(World world, IProgressEvent event) {
         this.world = world;
+        this.placer = new FastBlockPlacer(world);
         this.event = event;
         this.current = new BlockPos.Mutable(0, 0, 0);
         this.processed = 0;
@@ -72,6 +74,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
         this.printStage.addStageHandler(PrintStage.LOAD_SCHEMATIC, this::loadSchematic);
         this.printStage.addStageHandler(PrintStage.BLOCKS, this::placeBlocks);
         this.printStage.addStageHandler(PrintStage.UPDATE_BLOCKS, this::updateBlocks);
+        this.printStage.addStageHandler(PrintStage.SEND_BLOCKS, this::sendBlocks);
         this.printStage.addStageHandler(PrintStage.ENTITIES, this::placeEntities);
     }
 
@@ -153,11 +156,11 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
                 TileEntity te = world.getBlockEntity(pos);
                 if (te != null) {
                     IClearable.tryClear(te);
-                    world.setBlock(pos, Blocks.BARRIER.defaultBlockState(), Constants.BlockFlags.UPDATE_NEIGHBORS | Constants.BlockFlags.NO_RERENDER);
+                    placer.setBlock(pos, Blocks.BARRIER.defaultBlockState(), Constants.BlockFlags.UPDATE_NEIGHBORS | Constants.BlockFlags.NO_RERENDER);
                 }
             }
 
-            if (world.setBlock(pos, state, Constants.BlockFlags.BLOCK_UPDATE | Constants.BlockFlags.UPDATE_NEIGHBORS)) {
+            if (placer.setBlock(pos, state, Constants.BlockFlags.BLOCK_UPDATE | Constants.BlockFlags.UPDATE_NEIGHBORS)) {
                 if (tag != null) {
                     TileEntity te = world.getBlockEntity(pos);
                     if (te != null) {
@@ -195,7 +198,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
             state = fixBlockState(pos, state);
             BlockState updatedState = Block.updateFromNeighbourShapes(state, world, pos);
             if (state != updatedState) {
-                world.setBlock(pos, updatedState, Constants.BlockFlags.BLOCK_UPDATE | Constants.BlockFlags.UPDATE_NEIGHBORS);
+                placer.setBlock(pos, updatedState, Constants.BlockFlags.BLOCK_UPDATE | Constants.BlockFlags.UPDATE_NEIGHBORS);
             }
             world.blockUpdated(pos, updatedState.getBlock());
 
@@ -210,6 +213,10 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
 
         IProgressEvent.safeFire(event, "블록 업데이트중...", Math.min(0.5 + 0.3 * processed / total, 1.0));
         return processed < total;
+    }
+
+    private boolean sendBlocks(){
+        return placer.update();
     }
 
     private boolean placeEntities() {
