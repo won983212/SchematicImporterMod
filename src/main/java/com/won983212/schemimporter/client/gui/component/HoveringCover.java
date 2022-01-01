@@ -47,12 +47,6 @@ public class HoveringCover extends AbstractComponent {
         return false;
     }
 
-    @Override
-    public boolean isMouseOver(double x, double y) {
-        return x >= this.x && x <= this.x + this.width &&
-                y >= this.y && y <= this.y + this.height;
-    }
-
     @OnlyIn(Dist.CLIENT)
     public interface IPressable {
         void onPress(HoveringCover button);

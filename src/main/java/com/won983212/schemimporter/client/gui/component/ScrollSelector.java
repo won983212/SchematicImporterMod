@@ -5,14 +5,16 @@ import com.won983212.schemimporter.client.gui.PanelScreen;
 
 import java.util.List;
 
-public class ScrollSelector extends HoveringCover {
+public class ScrollSelector extends AbstractComponent {
     private final List<?> elements;
+    private final int viewCount;
     private int selectedIndex = 0;
+    private int scrollIndex = 0;
 
     public ScrollSelector(int x, int y, int width, int height, List<?> elements) {
-        super(x, y, width, height, null);
+        super(x, y, width, height);
         this.elements = elements;
-        this.hoveredColor = 0x33ffffff;
+        this.viewCount = height / 18;
     }
 
     private void selectNext(int delta) {
@@ -21,12 +23,18 @@ public class ScrollSelector extends HoveringCover {
             return;
         }
 
-        selectedIndex += delta;
+        selectedIndex -= delta;
         if (selectedIndex < 0) {
             selectedIndex += max;
         }
         if (selectedIndex >= max) {
             selectedIndex %= max;
+        }
+        if (scrollIndex > selectedIndex) {
+            scrollIndex = selectedIndex;
+        }
+        if (scrollIndex + viewCount <= selectedIndex) {
+            scrollIndex = selectedIndex - viewCount + 1;
         }
     }
 
@@ -39,17 +47,19 @@ public class ScrollSelector extends HoveringCover {
 
     @Override
     public void render(MatrixStack ms, int x, int y, float partialTime) {
-        String str;
         if (elements.isEmpty()) {
-            str = "아무것도 없음!";
-        } else {
-            str = elements.get(getSelectedIndex()).toString();
-            str = (selectedIndex + 1) + ": " + str;
-            str = PanelScreen.ellipsisText(font, str, width - 10);
+            drawString(ms, font, "아무것도 없음!", this.x + 5, this.y + (height - font.lineHeight) / 2 + 1, 0xffffffff);
+            return;
         }
-
-        drawString(ms, font, str, this.x + 5, this.y + (height - font.lineHeight) / 2 + 1, 0xffffffff);
-        super.render(ms, x, y, partialTime);
+        for (int i = scrollIndex, j = 0; i < elements.size() && j < viewCount; i++, j++) {
+            String str = elements.get(i).toString();
+            str = (i + 1) + ": " + str;
+            if (i == getSelectedIndex()) {
+                str = "§6" + str;
+            }
+            str = PanelScreen.ellipsisText(font, str, width - 10);
+            drawString(ms, font, str, this.x + 5, this.y + (18 - font.lineHeight) / 2 + 18 * j + 1, 0xffffffff);
+        }
     }
 
     @Override

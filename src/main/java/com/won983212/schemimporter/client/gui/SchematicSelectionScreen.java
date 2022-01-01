@@ -79,11 +79,11 @@ public class SchematicSelectionScreen extends PanelScreen {
         this.children.clear();
         this.openBtn = new HoveringCover(21, 21, 18, 18, SchematicSelectionScreen.this::onAccept);
         this.children.add(openBtn);
-        this.uploadBtn = new HoveringCover(178, 55, 18, 18, SchematicSelectionScreen.this::onAccept);
+        this.uploadBtn = new HoveringCover(178, 109, 18, 18, SchematicSelectionScreen.this::onAccept);
         this.children.add(uploadBtn);
-        this.deleteBtn = new HoveringCover(152, 55, 18, 18, SchematicSelectionScreen.this::onAccept);
+        this.deleteBtn = new HoveringCover(152, 109, 18, 18, SchematicSelectionScreen.this::onAccept);
         this.children.add(deleteBtn);
-        this.fileSelector = new ScrollSelector(45, 21, 139, 18, schematicFiles);
+        this.fileSelector = new ScrollSelector(45, 21, 139, 72, schematicFiles);
         this.children.add(fileSelector);
         applyBackgroundOffset(ModTextures.SCHEMATIC_SELECT_BACKGROUND);
     }
@@ -93,8 +93,9 @@ public class SchematicSelectionScreen extends PanelScreen {
         this.renderBackground(ms);
         drawTexturedBackground(ms, ModTextures.SCHEMATIC_SELECT_BACKGROUND);
         super.render(ms, mouseX, mouseY, partialTime);
-        drawCenteredString(ms, font, "§6[노란색]§r 으로 된 파일은 서버로 업로드가 필요한 파일입니다.", width / 2, (height + ModTextures.SCHEMATIC_SELECT_BACKGROUND.height) / 2 + 6, 0xffffffff);
-        drawCenteredString(ms, font, "이미 업로드된 파일은 [삭제]버튼을 눌러 삭제할 수 있습니다.", width / 2, (height + ModTextures.SCHEMATIC_SELECT_BACKGROUND.height) / 2 + 20, 0xffffffff);
+        drawCenteredString(ms, font, "마우스 휠로 파일을 선택하세요.", width / 2, (height + ModTextures.SCHEMATIC_SELECT_BACKGROUND.height) / 2 + 6, 0xffffffff);
+        drawCenteredString(ms, font, "§n[밑줄]§r 으로 된 파일은 업로드가 필요한 파일입니다.", width / 2, (height + ModTextures.SCHEMATIC_SELECT_BACKGROUND.height) / 2 + 20, 0xffffffff);
+        drawCenteredString(ms, font, "이미 업로드된 파일은 [삭제]버튼을 눌러 삭제할 수 있습니다.", width / 2, (height + ModTextures.SCHEMATIC_SELECT_BACKGROUND.height) / 2 + 34, 0xffffffff);
     }
 
     public void onResponseFileDeletion(String fileName) {
@@ -125,7 +126,7 @@ public class SchematicSelectionScreen extends PanelScreen {
 
         @Override
         public String toString() {
-            return needsUpload ? ("§6" + getName()) : getName();
+            return needsUpload ? ("§n" + getName()) : getName();
         }
     }
 }

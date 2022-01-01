@@ -56,4 +56,10 @@ public abstract class AbstractComponent extends AbstractGui implements IRenderab
         this.x += dx;
         this.y += dy;
     }
+
+    @Override
+    public boolean isMouseOver(double x, double y) {
+        return x >= this.x && x <= this.x + this.width &&
+                y >= this.y && y <= this.y + this.height;
+    }
 }

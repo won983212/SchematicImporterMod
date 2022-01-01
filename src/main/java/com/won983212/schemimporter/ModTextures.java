@@ -13,7 +13,7 @@ public enum ModTextures {
     CHECKERED("checkerboard.png", 0, 0, 16, 16),
     OVERLAY("overlay.png", 0, 0, 16, 16),
     HIGHLIGHT_CHECKERED("highlighted_checkerboard.png", 0, 0, 16, 16),
-    SCHEMATIC_SELECT_BACKGROUND("schematics.png", 0, 0, 206, 83);
+    SCHEMATIC_SELECT_BACKGROUND("schematics.png", 0, 0, 206, 137);
 
     private final ResourceLocation location;
     public final int width, height;
