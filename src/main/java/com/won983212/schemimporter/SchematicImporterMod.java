@@ -3,7 +3,6 @@ package com.won983212.schemimporter;
 import com.won983212.schemimporter.client.ClientMod;
 import com.won983212.schemimporter.network.NetworkDispatcher;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.LanguageMap;
 import net.minecraft.util.text.TranslationTextComponent;

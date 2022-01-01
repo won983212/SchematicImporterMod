@@ -5,7 +5,6 @@ import com.won983212.schemimporter.schematic.IProgressEntry;
 import com.won983212.schemimporter.schematic.SchematicFile;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class SchematicNetworkProgress<S> implements IProgressEntry {
     private static final String[] SIZE_UNITS = {"B", "KB", "MB", "GB"};

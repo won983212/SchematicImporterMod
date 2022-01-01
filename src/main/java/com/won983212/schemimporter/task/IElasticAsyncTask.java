@@ -16,7 +16,7 @@ public interface IElasticAsyncTask<T> extends IAsyncTask<T> {
         return 1000;
     }
 
-    default int getMaxBatchCount(){
+    default int getMaxBatchCount() {
         return Integer.MAX_VALUE;
     }
 }

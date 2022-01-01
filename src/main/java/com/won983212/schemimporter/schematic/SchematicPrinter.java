@@ -215,7 +215,7 @@ public class SchematicPrinter implements IElasticAsyncTask<Void> {
         return processed < total;
     }
 
-    private boolean sendBlocks(){
+    private boolean sendBlocks() {
         return placer.update();
     }
 

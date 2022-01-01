@@ -2,7 +2,6 @@ package com.won983212.schemimporter.item;
 
 import com.won983212.schemimporter.SchematicImporterMod;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

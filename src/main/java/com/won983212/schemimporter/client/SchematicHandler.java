@@ -109,7 +109,7 @@ public class SchematicHandler implements Consumer<String> {
                             SchematicImporterMod.translate("message.requestschematic", fileName));
                     renderTarget = null;
                     downloadingFiles.add(fileName);
-                } else if(downloadingFiles.contains(fileName)){
+                } else if (downloadingFiles.contains(fileName)) {
                     renderTarget = null;
                 }
             } catch (IOException e) {

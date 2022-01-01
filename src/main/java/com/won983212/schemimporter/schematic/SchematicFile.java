@@ -148,7 +148,7 @@ public class SchematicFile {
         return getFilePath(owner, schematic);
     }
 
-    public static String keyToName(String schematicKey){
+    public static String keyToName(String schematicKey) {
         Path path = Paths.get(schematicKey);
         int nameCount = path.getNameCount();
         return path.subpath(nameCount - 1, nameCount).toString();

@@ -8,6 +8,6 @@ public interface IAsyncTask<T> {
 
     T getResult();
 
-    default void setScheduler(TaskScheduler scheduler){
+    default void setScheduler(TaskScheduler scheduler) {
     }
 }
